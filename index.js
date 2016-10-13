@@ -48,40 +48,42 @@ module.exports = function(sails) {
         //attach all workers to queue
         //ready to process their jobs
         _.keys(workers).forEach(function(worker) {
-            // deduce job type form worker name (add prefix)
-            var jobType = getJobType(worker, config);
-            //grab worker definition from
-            //loaded workers
-            var workerDefinition = workers[worker];
+      // deduce job type form worker name (add prefix)
+      var jobType = getJobType(worker, config);
+      //grab worker definition from
+      //loaded workers
+      var workerDefinition = workers[worker];
 
-           var checkConcurrency = Worker.findOne({
+      var checkConcurrency = Worker.findOne({
         workerName: jobType
       }, function(err, conc) {
         if (err) {
-          console.log(err);
-          return 1;
+          return doProcess(0);
         }
         if (!conc) {
-          console.log(jobType + "/1");
-          return 1;
+          return doProcess(1);
         }
         if (conc) {
-          console.log(jobType + "/" + conc.workerConcurrency);
-        return conc.workerConcurrency;
-      }
+          return doProcess(conc.workerConcurrency);
+        }
       });
 
-            //tell subscriber about the
-            //worker definition
-            //and register if
-            //ready to perform available jobs
-            subscriber
-                .process(
-                    jobType,
-                    workerDefinition.concurrency || checkConcurrency,
-                    workerDefinition.perform
-                );
-        });
+      //tell subscriber about the
+      //worker definition
+      //and register if
+      //ready to perform available jobs
+
+      var doProcess = function(val) {
+        console.log(jobType + "/" + val);
+        subscriber
+          .process(
+            jobType,
+            workerDefinition.concurrency || val,
+            workerDefinition.perform
+          );
+      }
+
+    });
     }
 
     //reference kue based queue
