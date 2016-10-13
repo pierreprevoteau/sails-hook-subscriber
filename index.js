@@ -50,19 +50,30 @@ module.exports = function(sails) {
         _.keys(workers).forEach(function(worker) {
             // deduce job type form worker name (add prefix)
             var jobType = getJobType(worker, config);
-
             //grab worker definition from
             //loaded workers
             var workerDefinition = workers[worker];
 
-            //tell subscriber about the 
+            var checkConcurrency = Worker.findOne({
+        workerName: jobType
+      }, function(err, conc) {
+        if (err) {
+          return 1;
+        }
+        if (!conc) {
+          return 1;
+        }
+        return conc.workerConcurrency;
+      });
+
+            //tell subscriber about the
             //worker definition
-            //and register if 
+            //and register if
             //ready to perform available jobs
             subscriber
                 .process(
                     jobType,
-                    workerDefinition.concurrency || 1,
+                    workerDefinition.concurrency || checkConcurrency,
                     workerDefinition.perform
                 );
         });
