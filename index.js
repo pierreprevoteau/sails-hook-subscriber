@@ -54,16 +54,21 @@ module.exports = function(sails) {
             //loaded workers
             var workerDefinition = workers[worker];
 
-            var checkConcurrency = Worker.findOne({
+           var checkConcurrency = Worker.findOne({
         workerName: jobType
       }, function(err, conc) {
         if (err) {
+          console.log(err);
           return 1;
         }
         if (!conc) {
+          console.log(jobType + "/1");
           return 1;
         }
+        if (conc) {
+          console.log(jobType + "/" + conc.workerConcurrency);
         return conc.workerConcurrency;
+      }
       });
 
             //tell subscriber about the
