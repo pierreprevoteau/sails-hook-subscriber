@@ -201,6 +201,9 @@ module.exports = function(sails) {
         });
     },
 
+
+
+    // CUSTOM PART !!!
     reload: function(done) {
       sails.log.info('Reloading sails-hook-subscriber.');
       var config = sails.config[this.configKey];
@@ -215,11 +218,31 @@ module.exports = function(sails) {
           });
 
 
+    },
+
+    start: function(done) {
+      sails.log.info('Starting sails-hook-subscriber.');
+      var config = sails.config[this.configKey];
+
+      subscriber = kue.createQueue(config);
+      initializeWorkers(config);
 
 
+    },
+
+    stop: function(done) {
+      sails.log.info('Stoping sails-hook-subscriber.');
+      var config = sails.config[this.configKey];
+
+      subscriber
+        .shutdown(86400, function(error) {
+          sails.emit('subscribe:shutdown', error || '');
+        });
 
 
     }
+
+
   };
 
 };
